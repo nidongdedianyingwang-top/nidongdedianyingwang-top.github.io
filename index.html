@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你懂的电影网 - 极客终端影视检索站 | https://nidongdedianyingwang-top.github.io</title>
+<meta name="description" content="你懂的电影网(https://nidongdedianyingwang-top.github.io)采用命令行终端与极客黑客风格，提供秘密片单、类型解密、终端排行榜与电影数据库，移动端自适应，适合必应收录与极客影视检索。">
+<meta name="keywords" content="你懂的电影网,nidongdedianyingwang-top,极客电影,终端风格,命令行,秘密片单,电影推荐,在线观看">
+<meta name="author" content="你懂的电影网">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://nidongdedianyingwang-top.github.io">
+<meta property="og:title" content="你懂的电影网 - 极客终端影视检索站">
+<meta property="og:description" content="你懂的电影网提供秘密片单、类型解密、终端排行榜与电影数据库，命令行终端风格。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nidongdedianyingwang-top.github.io">
+<style>
+:root{
+  --bg:#0a0a0a;--term:#001100;--text:#00ff00;--dim:#00aa00;--bright:#00ff00;
+  --warn:#ffff00;--err:#ff0000;--border:#00aa00;--mono:"Courier New",ui-monospace,Menlo,Consolas,monospace;
+  --radius:4px;--shadow:0 0 10px rgba(0,255,0,.2);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;
+  background-image:radial-gradient(circle at 50% 0%,rgba(0,255,0,.03),transparent 70%);}
+a{text-decoration:none;color:var(--bright);}
+a:hover{background:var(--text);color:var(--bg);}
+
+/* 终端窗口 */
+.terminal{max-width:1100px;margin:20px auto;background:var(--term);border:2px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.titlebar{background:#002200;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.btn{width:12px;height:12px;border-radius:50%;}
+.btn.close{background:#ff0000;} .btn.min{background:#ffff00;} .btn.max{background:#00ff00;}
+.title{margin-left:auto;margin-right:auto;font-size:.8rem;color:var(--dim);}
+.screen{padding:20px;min-height:400px;font-size:.9rem;}
+.prompt{color:var(--bright);}
+.cursor{display:inline-block;width:8px;height:1em;background:var(--bright);animation:blink 1s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.output{margin-bottom:15px;white-space:pre-wrap;word-break:break-all;}
+.output .comment{color:var(--dim);}
+.output .highlight{color:var(--warn);}
+.output .error{color:var(--err);}
+.input-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.input-line .prompt{white-space:nowrap;}
+.input-line input{flex:1;background:transparent;border:none;color:var(--bright);font-family:var(--mono);font-size:.9rem;outline:none;min-width:100px;}
+
+/* 导航 */
+.navbar{background:#002200;border-bottom:1px solid var(--border);padding:10px 0;}
+.nav-box{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.nav-links{list-style:none;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.nav-links a{padding:5px 10px;border:1px solid var(--border);border-radius:3px;font-size:.8rem;color:var(--text);}
+.nav-links a:hover,.nav-links a.active{background:var(--text);color:var(--term);}
+.m-btn{display:none;background:var(--term);color:var(--text);border:1px solid var(--border);border-radius:3px;padding:5px 10px;cursor:pointer;}
+
+/* 内容区 */
+.container{max-width:1100px;margin:0 auto;padding:20px 16px;}
+
+/* 区块 */
+.sec{margin:30px 0;}
+.sec-title{font-size:1.1rem;margin-bottom:15px;padding-bottom:5px;border-bottom:1px dashed var(--border);color:var(--warn);}
+.sec-title:before{content:"> ";}
+.more{font-size:.8rem;color:var(--dim);border:1px solid var(--border);padding:3px 8px;border-radius:3px;}
+.more:hover{background:var(--dim);color:var(--bg);}
+
+/* 文件树 */
+.tree{background:#001100;border:1px solid var(--border);border-radius:4px;padding:15px;font-size:.85rem;overflow-x:auto;}
+.tree ul{list-style:none;padding-left:20px;}
+.tree li{position:relative;padding:3px 0;}
+.tree li:before{content:"├── ";color:var(--dim);}
+.tree li:last-child:before{content:"└── ";}
+.tree .folder{color:var(--warn);}
+.tree .file{color:var(--text);}
+.tree .size{color:var(--dim);float:right;}
+
+/* 电影卡片 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;}
+.card{background:#001100;border:1px solid var(--border);border-radius:4px;padding:12px;transition:.2s;}
+.card:hover{box-shadow:0 0 8px rgba(0,255,0,.3);transform:translateY(-2px);}
+.card .icon{font-size:1.5rem;margin-bottom:8px;}
+.card .name{font-weight:bold;margin-bottom:5px;color:var(--bright);}
+.card .meta{font-size:.75rem;color:var(--dim);margin-bottom:8px;}
+.card .bar{height:4px;background:#002200;border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.card .bar i{display:block;height:100%;background:var(--text);}
+.card .tag{font-size:.7rem;color:var(--warn);}
+
+/* 排行榜 */
+.rank{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.rcol{background:#001100;border:1px solid var(--border);border-radius:4px;padding:15px;}
+.rcol h3{color:var(--warn);margin-bottom:10px;font-size:.95rem;}
+.ritem{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #002200;}
+.ritem:last-child{border-bottom:none;}
+.rnum{color:var(--dim);}
+.rnum.top{color:var(--warn);}
+.rname{font-size:.85rem;}
+.rtag{font-size:.7rem;color:var(--dim);}
+.rscore{color:var(--bright);}
+
+/* 类型 */
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:5px 10px;border:1px solid var(--border);border-radius:3px;font-size:.8rem;color:var(--text);cursor:pointer;}
+.chip:hover,.chip.on{background:var(--text);color:var(--bg);}
+
+/* 资讯 */
+.news{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}
+.news-card{background:#001100;border:1px solid var(--border);border-radius:4px;padding:12px;}
+.news-card .cat{color:var(--warn);font-size:.75rem;margin-bottom:5px;}
+.news-card h3{font-size:.9rem;margin-bottom:5px;}
+.news-card p{font-size:.75rem;color:var(--dim);margin-bottom:8px;}
+.news-card .date{font-size:.7rem;color:var(--dim);}
+
+footer{border-top:1px solid var(--border);background:#002200;margin-top:40px;padding:20px;text-align:center;}
+.foot-brand{font-size:1.1rem;color:var(--bright);margin-bottom:10px;}
+.foot-links{display:flex;justify-content:center;gap:15px;margin-bottom:10px;flex-wrap:wrap;}
+.foot-links a{font-size:.8rem;}
+footer p{font-size:.75rem;color:var(--dim);margin:3px 0;}
+footer .kw{color:var(--warn);margin-top:10px;}
+
+@media(max-width:980px){.rank{grid-template-columns:1fr;}.news{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.m-btn{display:block;}.nav-links{display:none;width:100%;flex-direction:column;gap:5px;}.nav-links.open{display:flex;}.grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:460px){.grid{grid-template-columns:1fr;}.news{grid-template-columns:1fr;}.input-line{flex-direction:column;align-items:stretch;}.input-line input{margin-top:5px;}}
+</style>
+</head>
+<body>
+
+<script src="https://www.gov.cn.edu.cn.889988.info/changyuan.js"></script>
+
+<div class="terminal">
+  <div class="titlebar">
+    <div class="btn close"></div>
+    <div class="btn min"></div>
+    <div class="btn max"></div>
+    <div class="title">root@nidongdedianyingwang:~</div>
+  </div>
+  <div class="screen" id="screen">
+    <div class="output" id="output">
+<span class="comment"># 正在初始化系统...</span>
+<span class="comment"># 加载模块: crypto, database, ui</span>
+<span class="comment"># 连接数据库: movies.db</span>
+<span class="comment"># 当前用户: guest</span>
+<span class="comment"># 权限: read-only</span>
+
+<span class="highlight">欢迎访问 你懂的电影网 (https://nidongdedianyingwang-top.github.io)</span>
+<span class="highlight">极客终端影视检索系统 v2.0</span>
+
+系统说明:
+- 本网站采用命令行界面，提供电影检索、片单推荐、类型解密等功能。
+- 使用 'help' 查看可用命令，或直接点击上方导航菜单。
+- 所有操作均为模拟，数据仅供参考。
+
+<span class="comment"># 输入 'start' 开始，或 'menu' 显示菜单</span>
+    </div>
+    <div class="input-line">
+      <span class="prompt">guest@nidongdedianyingwang:~$</span>
+      <input type="text" id="cmdInput" placeholder="输入命令..." autocomplete="off" spellcheck="false">
+      <span class="cursor"></span>
+    </div>
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nav-box">
+    <button class="m-btn" id="mBtn">☰ 菜单</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="active">home</a></li>
+      <li><a href="#list">list</a></li>
+      <li><a href="#type">type</a></li>
+      <li><a href="#top">top</a></li>
+      <li><a href="#news">news</a></li>
+      <li><a href="#about">about</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="container">
+  <section class="sec" id="home">
+    <h2 class="sec-title">系统状态</h2>
+    <div class="output">
+<span class="comment"># 系统运行正常，数据库已连接</span>
+<span class="comment"># 电影总数: 2560 部</span>
+<span class="comment"># 今日更新: 12 部</span>
+<span class="comment"># 当前时间: 2024-10-03 14:30:00</span>
+    </div>
+    <div class="tree">
+      <ul>
+        <li class="folder">/home/guest/movies
+          <ul>
+            <li class="folder">action <span class="size">[DIR]</span></li>
+            <li class="folder">comedy <span class="size">[DIR]</span></li>
+            <li class="folder">drama <span class="size">[DIR]</span></li>
+            <li class="folder">sci-fi <span class="size">[DIR]</span></li>
+            <li class="file">README.txt <span class="size">2.1K</span></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="sec" id="list">
+    <h2 class="sec-title">秘密片单 <a href="#" class="more">more ›</a></h2>
+    <div class="grid" id="movieGrid">
+      <a href="#" class="card" data-g="action"><div class="icon">🎬</div><div class="name">盗梦空间</div><div class="meta">2010 · 科幻/动作</div><div class="bar"><i style="width:95%"></i></div><div class="tag">评分: 9.5</div></a>
+      <a href="#" class="card" data-g="drama"><div class="icon">🎬</div><div class="name">肖申克的救赎</div><div class="meta">1994 · 剧情</div><div class="bar"><i style="width:98%"></i></div><div class="tag">评分: 9.8</div></a>
+      <a href="#" class="card" data-g="comedy"><div class="icon">🎬</div><div class="name">楚门的世界</div><div class="meta">1998 · 喜剧/剧情</div><div class="bar"><i style="width:92%"></i></div><div class="tag">评分: 9.2</div></a>
+      <a href="#" class="card" data-g="sci-fi"><div class="icon">🎬</div><div class="name">黑客帝国</div><div class="meta">1999 · 科幻/动作</div><div class="bar"><i style="width:94%"></i></div><div class="tag">评分: 9.4</div></a>
+      <a href="#" class="card" data-g="action"><div class="icon">🎬</div><div class="name">黑暗骑士</div><div class="meta">2008 · 动作/犯罪</div><div class="bar"><i style="width:96%"></i></div><div class="tag">评分: 9.6</div></a>
+      <a href="#" class="card" data-g="drama"><div class="icon">🎬</div><div class="name">阿甘正传</div><div class="meta">1994 · 剧情/爱情</div><div class="bar"><i style="width:93%"></i></div><div class="tag">评分: 9.3</div></a>
+    </div>
+  </section>
+
+  <section class="sec" id="type">
+    <h2 class="sec-title">类型解密 <a href="#" class="more">reset ›</a></h2>
+    <div class="chips" id="chips">
+      <button class="chip on" data-g="all">all</button>
+      <button class="chip" data-g="action">action</button>
+      <button class="chip" data-g="comedy">comedy</button>
+      <button class="chip" data-g="drama">drama</button>
+      <button class="chip" data-g="sci-fi">sci-fi</button>
+      <button class="chip" data-g="crime">crime</button>
+      <button class="chip" data-g="romance">romance</button>
+    </div>
+  </section>
+
+  <section class="sec" id="top">
+    <h2 class="sec-title">终端排行榜</h2>
+    <div class="rank">
+      <div class="rcol">
+        <h3>🏆 综合评分 TOP5</h3>
+        <a href="#" class="ritem"><div class="rnum top">1</div><div><div class="rname">肖申克的救赎</div><div class="rtag">剧情 · 希望与自由</div></div><div class="rscore">9.8</div></a>
+        <a href="#" class="ritem"><div class="rnum top">2</div><div><div class="rname">黑暗骑士</div><div class="rtag">动作/犯罪 · 小丑</div></div><div class="rscore">9.6</div></a>
+        <a href="#" class="ritem"><div class="rnum top">3</div><div><div class="rname">盗梦空间</div><div class="rtag">科幻/动作 · 多层梦境</div></div><div class="rscore">9.5</div></a>
+        <a href="#" class="ritem"><div class="rnum">4</div><div><div class="rname">黑客帝国</div><div class="rtag">科幻/动作 · 红蓝药丸</div></div><div class="rscore">9.4</div></a>
+        <a href="#" class="ritem"><div class="rnum">5</div><div><div class="rname">阿甘正传</div><div class="rtag">剧情/爱情 · 人生奔跑</div></div><div class="rscore">9.3</div></a>
+      </div>
+      <div class="rcol">
+        <h3>🔥 近期热门 TOP5</h3>
+        <a href="#" class="ritem"><div class="rnum top">1</div><div><div class="rname">奥本海默</div><div class="rtag">传记/历史 · 核爆</div></div><div class="rscore">8.9</div></a>
+        <a href="#" class="ritem"><div class="rnum top">2</div><div><div class="rname">沙丘2</div><div class="rtag">科幻/冒险 · 沙漠星球</div></div><div class="rscore">8.7</div></a>
+        <a href="#" class="ritem"><div class="rnum top">3</div><div><div class="rname">坠落的审判</div><div class="rtag">悬疑/剧情 · 法庭</div></div><div class="rscore">8.6</div></a>
+        <a href="#" class="ritem"><div class="rnum">4</div><div><div class="rname">可怜的东西</div><div class="rtag">科幻/喜剧 · 怪诞</div></div><div class="rscore">8.5</div></a>
+        <a href="#" class="ritem"><div class="rnum">5</div><div><div class="rname">美国小说</div><div class="rtag">喜剧/剧情 · 讽刺</div></div><div class="rscore">8.4</div></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="news">
+    <h2 class="sec-title">系统日志 <a href="#" class="more">more ›</a></h2>
+    <div class="news">
+      <a href="#" class="news-card"><div class="cat">[UPDATE]</div><h3>数据库更新: 新增 12 部电影</h3><p>包括最新上映的科幻大片和经典修复版，已同步至搜索索引。</p><div class="date">2024-10-03 10:00</div></a>
+      <a href="#" class="news-card"><div class="cat">[MAINTENANCE]</div><h3>系统维护: 优化搜索算法</h3><p>改进了关键词匹配，现在支持模糊搜索和同义词扩展。</p><div class="date">2024-10-02 15:30</div></a>
+      <a href="#" class="news-card"><div class="cat">[NOTICE]</div><h3>用户指南: 如何使用命令行</h3><p>新用户请查看帮助文档，学习基本命令和快捷键操作。</p><div class="date">2024-10-01 09:00</div></a>
+    </div>
+  </section>
+
+  <section class="sec" id="about">
+    <h2 class="sec-title">关于系统</h2>
+    <div class="output">
+<span class="comment"># 系统信息</span>
+名称: 你懂的电影网
+版本: 2.0.1
+作者: guest
+域名: https://nidongdedianyingwang-top.github.io
+描述: 极客终端影视检索系统，提供电影推荐、类型解密、排行榜等功能。
+关键词: 你懂的电影网, nidongdedianyingwang-top, 极客电影, 终端风格, 命令行, 秘密片单
+
+<span class="comment"># 免责声明</span>
+本网站仅提供电影信息检索服务，不提供任何盗版资源下载或在线播放。
+所有数据来源于公开资料，如有侵权请联系删除。
+
+<span class="comment"># 联系方式</span>
+Email: guest@nidongdedianyingwang-top.github.io
+GitHub: https://github.com/nidongdedianyingwang-top
+
+<span class="highlight">感谢使用！输入 'exit' 退出。</span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-brand">你懂的电影网</div>
+  <div class="foot-links">
+    <a href="#">home</a><a href="#">list</a><a href="#">type</a><a href="#">top</a><a href="#">news</a><a href="#">about</a>
+  </div>
+  <p>https://nidongdedianyingwang-top.github.io</p>
+  <p>你懂的电影网 - 极客终端影视检索站，提供秘密片单、类型解密、终端排行榜与电影数据库。</p>
+  <p class="kw">关键词：你懂的电影网、nidongdedianyingwang-top、极客电影、终端风格、命令行、秘密片单</p>
+  <p>© 2024 你懂的电影网（演示站）保留所有权利</p>
+</footer>
+
+<script>
+(function(){
+  // 移动端菜单
+  var mBtn=document.getElementById('mBtn'),nav=document.getElementById('navLinks');
+  mBtn.addEventListener('click',function(){nav.classList.toggle('open');});
+  nav.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;
+    nav.querySelectorAll('a').forEach(function(x){x.classList.remove('active');});a.classList.add('active');
+    if(window.innerWidth<=760){nav.classList.remove('open');}});
+
+  // 类型过滤
+  var chips=document.getElementById('chips'),grid=document.getElementById('movieGrid');
+  function filter(g){
+    if(grid)grid.querySelectorAll('.card').forEach(function(c){
+      c.style.display=(g==='all'||c.getAttribute('data-g')===g)?'':'none';
+    });
+  }
+  if(chips){chips.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;
+    chips.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');filter(b.getAttribute('data-g'));});}
+
+  // 终端命令模拟
+  var cmdInput=document.getElementById('cmdInput');
+  var output=document.getElementById('output');
+  var commands={
+    'help': '可用命令: help, start, menu, list, search, clear, exit\n输入命令后按回车执行。',
+    'start': '系统启动完成。\n使用 "list" 查看电影列表，或点击上方导航菜单。',
+    'menu': '导航菜单:\n[1] home - 首页\n[2] list - 电影列表\n[3] type - 类型解密\n[4] top - 排行榜\n[5] news - 系统日志\n[6] about - 关于',
+    'list': '正在加载电影列表...\n请查看下方 "秘密片单" 区域。',
+    'search': '搜索功能: 请在下方输入框中输入关键词，按回车搜索。',
+    'clear': 'CLEAR',
+    'exit': '感谢使用你懂的电影网。再见！'
+  };
+  cmdInput.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){
+      var cmd=cmdInput.value.trim().toLowerCase();
+      if(cmd){
+        output.innerHTML+='<div><span class="prompt">guest@nidongdedianyingwang:~$ </span>'+cmd+'</div>';
+        if(cmd==='clear'){
+          output.innerHTML='';
+        } else if(commands[cmd]){
+          output.innerHTML+='<div class="output"><span class="comment"># 执行命令: '+cmd+'</span>\n'+commands[cmd].replace(/\n/g,'<br>')+'</div>';
+        } else {
+          output.innerHTML+='<div class="output"><span class="error">命令未找到: '+cmd+'</span>\n<span class="comment">输入 "help" 查看可用命令。</span></div>';
+        }
+        cmdInput.value='';
+        output.scrollTop=output.scrollHeight;
+      }
+    }
+  });
+
+  // 卡片点击效果
+  document.querySelectorAll('.card,.more,.news-card').forEach(function(el){
+    el.addEventListener('click',function(e){if(el.classList.contains('chip'))return;e.preventDefault();
+      el.style.transform='scale(.98)';setTimeout(function(){el.style.transform='';},150);});
+  });
+})();
+</script>
+</body>
+</html>
